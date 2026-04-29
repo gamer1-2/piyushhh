@@ -1,0 +1,12 @@
+{
+  "name": "CampusShield AI",
+  "description": "Smart Women Safety System with Real-Time Monitoring, AI Risk Detection, and Live Tracking.",
+  "requestFramePermissions": [
+    "geolocation"
+  ],
+  "majorCapabilities": [
+    "Real-time GPS Tracking",
+    "AI Risk Assessment",
+    "Emergency SOS Network"
+  ]
+}

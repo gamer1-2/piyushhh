@@ -9,6 +9,36 @@ export const getIncidents = async (req: AuthRequest, res: Response) => {
   res.json(mongoSim.data.reports);
 };
 
+export const getZones = async (req: AuthRequest, res: Response) => {
+  await mongoSim.read();
+  res.json(mongoSim.data.zones || []);
+};
+
+export const createZone = async (req: AuthRequest, res: Response) => {
+  try {
+    const { name, description, status } = req.body;
+    await mongoSim.read();
+    if (!mongoSim.data.zones) mongoSim.data.zones = [];
+    mongoSim.data.zones.push({ id: uuidv4(), name, description, status });
+    await mongoSim.write();
+    res.status(201).json({ message: 'Zone created' });
+  } catch (err) {
+    res.status(500).json({ message: 'Error creating zone' });
+  }
+};
+
+export const deleteZone = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    await mongoSim.read();
+    mongoSim.data.zones = (mongoSim.data.zones || []).filter(z => z.id !== id);
+    await mongoSim.write();
+    res.json({ message: 'Zone deleted' });
+  } catch (err) {
+    res.status(500).json({ message: 'Error deleting zone' });
+  }
+};
+
 export const createIncident = async (req: AuthRequest, res: Response) => {
   try {
     const { title, description, category, location, coordinates } = req.body;

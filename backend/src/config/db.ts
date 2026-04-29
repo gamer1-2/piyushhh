@@ -72,13 +72,24 @@ export type LiveTracking = {
   timestamp: string;
 };
 
+export type Zone = {
+  id: string;
+  name: string;
+  description: string;
+  status: 'SECURE' | 'CAUTION';
+};
+
 export type Data = {
   reports: Incident[];
   live_tracking: LiveTracking[];
   alerts: any[];
+  zones: Zone[];
 };
 
-const defaultData: Data = { reports: [], live_tracking: [], alerts: [] };
+const defaultData: Data = { reports: [], live_tracking: [], alerts: [], zones: [
+  { id: '1', name: 'Main Library', description: 'Verified Zone', status: 'SECURE' },
+  { id: '2', name: 'North Parking', description: 'Cautionary Area', status: 'CAUTION' }
+] };
 const mongoSim = await JSONFilePreset<Data>('db.json', defaultData);
 
 export { sql, mongoSim };

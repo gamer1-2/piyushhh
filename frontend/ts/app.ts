@@ -41,9 +41,17 @@ interface State {
   token: string | null;
   view: string;
   incidents: Incident[];
+  zones: Zone[];
   liveTracking: boolean;
   trackingData: Record<string, { coords: { lat: number, lng: number }, userName: string }>;
   location: { lat: number, lng: number };
+}
+
+interface Zone {
+  id: string;
+  name: string;
+  description: string;
+  status: 'SECURE' | 'CAUTION';
 }
 
 // --- State ---
@@ -61,6 +69,7 @@ let state: State = {
   token: localStorage.getItem('token') && localStorage.getItem('token') !== 'undefined' ? localStorage.getItem('token') : null,
   view: 'auth', // 'auth', 'dashboard', 'admin'
   incidents: [],
+  zones: [],
   liveTracking: true,
   trackingData: {}, // userId -> { lat, lng }
   location: { lat: 31.2560, lng: 75.7051 }, // Simulated grid coordinates (0-100)
@@ -415,9 +424,10 @@ const renderRegister = (parent) => {
   document.getElementById('show-login').onclick = () => renderAuth(parent);
 };
 
+
 const renderMain = async (parent) => {
   parent.innerHTML = `
-    <div class="h-screen flex flex-col relative overflow-hidden">
+    <div class="h-screen flex flex-col relative overflow-y-auto">
       <!-- Navbar -->
       <nav class="h-20 border-b border-white/10 bg-black/40 backdrop-blur-xl flex items-center justify-between px-8 z-50 shrink-0">
         <div class="flex items-center gap-3">
@@ -454,7 +464,7 @@ const renderMain = async (parent) => {
       </nav>
 
       <!-- Grid Layout -->
-      <div class="flex-1 overflow-hidden grid grid-cols-12 gap-0">
+      <div class="flex-1 grid grid-cols-12 gap-0">
         
         <!-- Sidebar: Left -->
         <aside class="col-span-12 lg:col-span-3 border-r border-white/5 bg-black/20 p-6 flex flex-col gap-6 overflow-y-auto">
@@ -477,20 +487,7 @@ const renderMain = async (parent) => {
           <div class="flex-1 flex flex-col gap-4">
             <h3 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-2">Local Safety Zones</h3>
             <div id="safety-zones" class="space-y-3">
-              <div class="p-4 rounded-xl bg-white/5 border-l-4 border-emerald-500 flex items-center justify-between">
-                <div>
-                  <p class="text-sm font-medium">Main Library</p>
-                  <p class="text-[11px] text-slate-500">Verified Zone</p>
-                </div>
-                <span class="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded font-bold">SECURE</span>
-              </div>
-              <div class="p-4 rounded-xl bg-white/5 border-l-4 border-warning flex items-center justify-between">
-                <div>
-                  <p class="text-sm font-medium">North Parking</p>
-                  <p class="text-[11px] text-slate-500">Cautionary Area</p>
-                </div>
-                <span class="text-[10px] text-warning bg-warning/10 px-2 py-0.5 rounded font-bold">CAUTION</span>
-              </div>
+              <!-- Dynamically injected -->
             </div>
           </div>
 
@@ -593,6 +590,7 @@ const renderMain = async (parent) => {
 
   renderMap();
   loadIncidents();
+  loadZones();
   setupMainEvents();
 };
 
@@ -744,6 +742,36 @@ const createIcon = (color: string, sizeStr: string, html = '') => {
     iconSize: [parseInt(sizeStr), parseInt(sizeStr)],
     iconAnchor: [parseInt(sizeStr)/2, parseInt(sizeStr)/2]
   });
+};
+
+const loadZones = async () => {
+  const data = await api.get('/zones');
+  if (Array.isArray(data)) {
+    state.zones = data;
+    renderZones();
+  }
+};
+
+const renderZones = () => {
+  const container = document.getElementById('safety-zones');
+  if (!container) return;
+  
+  const defaultZones = [
+    { id: '1', name: 'Main Library', description: 'Verified Zone', status: 'SECURE' },
+    { id: '2', name: 'North Parking', description: 'Cautionary Area', status: 'CAUTION' }
+  ];
+  
+  container.innerHTML = defaultZones.map(zone => `
+    <div class="p-4 rounded-xl bg-white/5 border-l-4 ${zone.status === 'SECURE' ? 'border-emerald-500' : 'border-warning'} flex items-center justify-between group">
+      <div>
+        <p class="text-sm font-medium">${zone.name}</p>
+        <p class="text-[11px] text-slate-500">${zone.description}</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="text-[10px] ${zone.status === 'SECURE' ? 'text-emerald-400 bg-emerald-500/10' : 'text-warning bg-warning/10'} px-2 py-0.5 rounded font-bold">${zone.status}</span>
+      </div>
+    </div>
+  `).join('');
 };
 
 const loadIncidents = async () => {
@@ -1270,7 +1298,7 @@ const updateRiskScore = () => {
 
 const showToast = (msg, type = 'info') => {
   const toast = document.createElement('div');
-  const baseClasses = 'fixed bottom-4 left-1/2 -translate-x-1/2 p-4 rounded-xl glass z-[100] transition-all duration-300 font-bold shadow-2xl';
+  const baseClasses = 'fixed bottom-4 left-1/2 -translate-x-1/2 p-4 rounded-xl glass z-[9999] transition-all duration-300 font-bold shadow-2xl';
   let colorClasses = 'border-emerald-500/50 text-emerald-500';
   if (type === 'error') colorClasses = 'border-red-500/50 bg-red-500/10 text-red-500';
   if (type === 'warning') colorClasses = 'border-warning/50 bg-warning/10 text-warning';

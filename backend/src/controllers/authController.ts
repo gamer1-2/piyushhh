@@ -25,6 +25,7 @@ export const register = async (req: Request, res: Response) => {
 
     const stmt = sql.prepare('INSERT INTO users (id, name, email, password, role) VALUES (?, ?, ?, ?, ?)');
     stmt.run(id, name || 'User', trimmedEmail, hashedPassword, role || 'student');
+    console.log(`User registered: ${trimmedEmail} with role ${role || 'student'}`);
 
     res.status(201).json({ message: 'User registered successfully' });
   } catch (err: any) {
@@ -41,6 +42,7 @@ export const login = async (req: Request, res: Response) => {
     if (!email || !password) return res.status(400).json({ message: 'Email and password required' });
     const trimmedEmail = email.toString().trim().toLowerCase();
     const user: any = sql.prepare('SELECT * FROM users WHERE email = ?').get(trimmedEmail);
+    console.log(`Login attempt for ${trimmedEmail}. Found: ${!!user}`);
 
     if (!user) {
       return res.status(401).json({ message: 'Account not found. Please register first.' });

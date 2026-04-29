@@ -1,5 +1,5 @@
 {
-  "name": "CampusShield AI",
+  "name": "CampusShield",
   "description": "Smart Women Safety System with Real-Time Monitoring, AI Risk Detection, and Live Tracking.",
   "requestFramePermissions": [
     "geolocation"

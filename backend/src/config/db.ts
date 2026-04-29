@@ -5,6 +5,7 @@ import bcrypt from 'bcryptjs';
 
 // SQLite for Users (PostgreSQL alternative)
 const dbPath = path.resolve('campus_shield.db');
+console.log(`Database path: ${dbPath}`);
 const sql = new Database(dbPath);
 
 // Initialize SQLite tables
